@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #0d0010;
+  color: #e8d0ff;
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  margin: 0;
+}
+
+/* efeito de grade de pixels no fundo */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(191, 0, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(191, 0, 255, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* glow em botões e bordas neon */
+.glow {
+  box-shadow: 0 0 8px rgba(191, 0, 255, 0.5), 0 0 20px rgba(191, 0, 255, 0.2);
+}
+
+.glow-magenta {
+  box-shadow: 0 0 8px rgba(255, 0, 110, 0.5), 0 0 20px rgba(255, 0, 110, 0.2);
+}
+
+/* scrollbar estilizada */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #160020; }
+::-webkit-scrollbar-thumb { background: #2a004a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #bf00ff; }

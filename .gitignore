@@ -1,0 +1,108 @@
+# =============================================================
+# BACKEND — Java / Maven / Spring Boot
+# =============================================================
+
+# compilados e empacotados
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# Maven wrapper binário (o .properties pode ir, o jar não)
+.mvn/wrapper/maven-wrapper.jar
+
+# logs da aplicação
+*.log
+logs/
+spring.log
+
+# =============================================================
+# FRONTEND — Node.js / React / Vite
+# =============================================================
+
+# dependências (pesadas, regeneradas com npm install)
+frontend/node_modules/
+
+# build de produção gerado pelo vite build
+frontend/dist/
+
+# cache interno do Vite
+frontend/.vite/
+
+# arquivos de log do npm/node
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/*.local
+
+# =============================================================
+# VARIÁVEIS DE AMBIENTE — nunca sobe credenciais
+# =============================================================
+
+.env
+.env.*
+*.env
+*.env.local
+*.env.development
+*.env.production
+
+# =============================================================
+# IDEs e EDITORES
+# =============================================================
+
+# VS Code (configurações pessoais ficam fora do repo)
+.vscode/
+!.vscode/extensions.json
+
+# IntelliJ IDEA / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# =============================================================
+# SISTEMA OPERACIONAL — Windows
+# =============================================================
+
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# =============================================================
+# DOCKER
+# =============================================================
+
+# variáveis de ambiente do compose (se existir)
+docker-compose.override.yml
+.docker/
+
+# =============================================================
+# CLAUDE CODE — dados de sessão e memória da ferramenta
+# =============================================================
+
+.claude/
+
+# =============================================================
+# OUTROS
+# =============================================================
+
+# arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# documentação gerada automaticamente
+HELP.md
