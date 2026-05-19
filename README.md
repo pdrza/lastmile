@@ -1,9 +1,9 @@
-# OptiRoute API
+# Last Mile
 
 > **Projeto Acadêmico** — Trabalho de conclusão de curso / projeto de disciplina.
 > Não se destina a uso comercial ou produção.
 
-Sistema de roteirização *last-mile* (última milha) desenvolvido em Java com Spring Boot. Recebe uma lista de endereços de entrega de uma loja, transforma os endereços em coordenadas geográficas e calcula a rota mais eficiente usando a API OpenRouteService. Possui interface web em React com mapa interativo e estética cyberpunk.
+API REST de roteirização *last-mile* desenvolvida em Java com Spring Boot. Recebe endereços de entrega, converte em coordenadas geográficas via geocoding e calcula a rota mais eficiente entre os pontos. Acompanha interface web em React com mapa interativo.
 
 ---
 
@@ -31,12 +31,11 @@ Sistema de roteirização *last-mile* (última milha) desenvolvido em Java com S
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    CLIENTE (Browser)                        │
-│              React + Vite  localhost:5173                   │
+│                     React + Vite                            │
 └─────────────────────────┬───────────────────────────────────┘
                           │ HTTP + JWT
 ┌─────────────────────────▼───────────────────────────────────┐
 │                   SPRING BOOT API                           │
-│                    localhost:8080                           │
 │                                                             │
 │  Controller → Service → Repository → JPA/Hibernate         │
 │                   │           │                             │
@@ -46,13 +45,11 @@ Sistema de roteirização *last-mile* (última milha) desenvolvido em Java com S
 ┌──────▼──────┐               ┌──────▼──────┐
 │  PostgreSQL │               │    Redis    │
 │  + PostGIS  │               │   Cache     │
-│  porta 5432 │               │  porta 6379 │
 └─────────────┘               └─────────────┘
        │
 ┌──────▼──────────────────────┐
 │   OpenRouteService API      │
 │   Geocoding + Otimização    │
-│   api.openrouteservice.org  │
 └─────────────────────────────┘
 ```
 
@@ -60,13 +57,13 @@ Sistema de roteirização *last-mile* (última milha) desenvolvido em Java com S
 
 ## Funcionalidades
 
-- **Autenticação JWT** — cadastro e login de lojas com token de 24h
-- **Multitenancy** — cada loja acessa apenas as próprias entregas
-- **Geocoding automático** — endereço em texto → coordenadas (lat/lng) via ORS
-- **Cache Redis** — endereços já pesquisados não chamam a API novamente (TTL 30 dias)
-- **Otimização de rotas** — algoritmo de roteamento via OpenRouteService (formato VROOM)
-- **Persistência geoespacial** — coordenadas salvas como `GEOMETRY(Point, 4326)` no PostGIS
-- **Interface cyberpunk** — dashboard com mapa interativo, pins coloridos por status e rota traçada
+- **Autenticação JWT** — cadastro e login com token stateless
+- **Multitenancy** — cada loja acessa apenas seus próprios dados
+- **Geocoding automático** — endereço em texto → coordenadas via OpenRouteService
+- **Cache Redis** — resultados de geocoding cacheados para evitar chamadas repetidas à API externa
+- **Otimização de rotas** — cálculo de rota eficiente via OpenRouteService (VROOM)
+- **Persistência geoespacial** — coordenadas armazenadas com PostGIS
+- **Interface interativa** — mapa com pins por status e rota traçada
 
 ---
 
@@ -74,7 +71,7 @@ Sistema de roteirização *last-mile* (última milha) desenvolvido em Java com S
 
 - Java 21
 - Maven 3.9+
-- Docker Desktop (para PostgreSQL + Redis)
+- Docker Desktop
 - Node.js 18+
 - Chave gratuita da [OpenRouteService API](https://openrouteservice.org/)
 
@@ -88,11 +85,7 @@ Sistema de roteirização *last-mile* (última milha) desenvolvido em Java com S
 docker compose up -d
 ```
 
-Isso sobe:
-- PostgreSQL 15 + PostGIS na porta `5432`
-- Redis 7 na porta `6379`
-
-O Flyway cria o schema automaticamente na primeira execução.
+Sobe PostgreSQL + PostGIS e Redis. O Flyway cria o schema automaticamente na primeira execução.
 
 ### 2. Backend
 
@@ -100,8 +93,6 @@ O Flyway cria o schema automaticamente na primeira execução.
 $env:ORS_API_KEY = "sua_chave_ors_aqui"
 mvn spring-boot:run
 ```
-
-API disponível em `http://localhost:8080`
 
 ### 3. Frontend
 
@@ -111,66 +102,26 @@ npm install
 npm run dev
 ```
 
-Interface disponível em `http://localhost:5173`
+---
+
+## Endpoints
+
+A API expõe três grupos de recursos:
+
+- **Autenticação** — cadastro e login de lojas
+- **Entregas** — CRUD de entregas com atualização de status *(requer token)*
+- **Rotas** — otimização e consulta de rotas calculadas *(requer token)*
+
+Todas as rotas protegidas exigem `Authorization: Bearer <token>` no header.
 
 ---
 
-## Endpoints da API
-
-### Autenticação
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/api/auth/register` | Cadastra nova loja (geocodifica o endereço) |
-| `POST` | `/api/auth/login` | Login — retorna token JWT |
-
-### Entregas *(requer Bearer token)*
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/api/deliveries` | Cadastra entrega (geocodifica endereço do cliente) |
-| `GET` | `/api/deliveries` | Lista entregas da loja (`?status=PENDING`) |
-| `PATCH` | `/api/deliveries/{id}/status` | Atualiza status de uma entrega |
-
-### Rotas *(requer Bearer token)*
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/api/routes/optimize` | Calcula rota otimizada para entregas PENDING |
-| `GET` | `/api/routes/{id}` | Busca detalhes de uma rota |
-
-### Utilitários *(testes)*
-
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `DELETE` | `/api/test/reset` | Reseta entregas para PENDING e apaga rotas |
-
----
-
-## Fluxo de status das entregas
+## Fluxo de status
 
 ```
 PENDING → IN_TRANSIT → DELIVERED
                     ↘ FAILED
 ```
-
-- `PENDING` — entrega cadastrada, aguardando otimização
-- `IN_TRANSIT` — rota gerada, motoboy a caminho
-- `DELIVERED` — entrega concluída
-- `FAILED` — entrega falhou
-
----
-
-## Variáveis de ambiente
-
-| Variável | Obrigatório | Padrão (dev) | Descrição |
-|----------|-------------|--------------|-----------|
-| `ORS_API_KEY` | ✅ | — | Chave da OpenRouteService |
-| `JWT_SECRET` | Não | fallback inseguro | Segredo HMAC-SHA256 para JWT |
-| `DB_URL` | Não | `localhost:5432/optiroute` | URL do PostgreSQL |
-| `DB_USERNAME` | Não | `optiroute` | Usuário do banco |
-| `DB_PASSWORD` | Não | `optiroute123` | Senha do banco |
-| `REDIS_HOST` | Não | `localhost` | Host do Redis |
 
 ---
 
@@ -180,47 +131,18 @@ PENDING → IN_TRANSIT → DELIVERED
 mvn test
 ```
 
-22 testes unitários cobrindo as camadas de serviço com JUnit 5 + Mockito.
-Nenhum teste faz chamadas de rede (GeocodingClient e Redis são mockados).
-
----
-
-## Estrutura do projeto
-
-```
-last-mile/
-├── src/
-│   ├── main/java/com/lastmile/optiroute/
-│   │   ├── client/         # Integração com OpenRouteService
-│   │   ├── controller/     # Endpoints REST
-│   │   ├── domain/         # Entidades JPA e enums
-│   │   ├── dto/            # Objetos de transferência de dados
-│   │   ├── exception/      # Tratamento global de erros (RFC 7807)
-│   │   ├── repository/     # Interfaces Spring Data JPA
-│   │   ├── security/       # JWT, filtro de autenticação, Spring Security
-│   │   └── service/        # Regras de negócio
-│   └── main/resources/
-│       ├── application.yml
-│       └── db/migration/   # Scripts Flyway
-├── frontend/
-│   └── src/
-│       ├── components/     # StatusBadge, DeliveryCard, RouteMap, NewDeliveryForm
-│       ├── pages/          # Login, Dashboard
-│       └── services/       # Axios configurado com JWT
-├── docker-compose.yml
-└── pom.xml
-```
+Testes unitários cobrindo camadas de serviço com JUnit 5 + Mockito. Sem chamadas de rede nos testes (dependências externas são mockadas).
 
 ---
 
 ## Contexto acadêmico
 
-Projeto desenvolvido para demonstrar, em ambiente acadêmico, a integração de tecnologias modernas na solução de problemas logísticos reais:
+Projeto desenvolvido para demonstrar integração de tecnologias modernas em problemas logísticos reais:
 
-- Arquitetura REST com separação de camadas (Controller → Service → Repository)
+- Arquitetura REST em camadas (Controller → Service → Repository)
 - Segurança stateless com JWT e Spring Security
 - Persistência geoespacial com PostGIS
 - Estratégia de cache (Cache-aside) com Redis
 - Integração com API externa (OpenRouteService / VROOM)
 - Testes unitários com isolamento via Mockito
-- Interface moderna com React, Tailwind CSS e Leaflet.js
+- Interface com React, Tailwind CSS e Leaflet.js
