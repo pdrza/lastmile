@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
-// Regras de negócio das entregas
 @Service
 public class DeliveryService {
 
@@ -35,12 +34,10 @@ public class DeliveryService {
         this.geocodingCacheService = geocodingCacheService;
     }
 
-    // cadastra uma nova entrega: geocodifica o endereço e salva com status PENDING
     public DeliveryResponse create(UUID storeId, DeliveryRequest request) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Loja não encontrada"));
 
-        // pega as coordenadas do endereço (do cache ou da API)
         double[] coords = geocodingCacheService.getCoordinates(request.address());
 
         Delivery delivery = Delivery.builder()
@@ -53,7 +50,6 @@ public class DeliveryService {
         return DeliveryResponse.from(deliveryRepository.save(delivery));
     }
 
-    // lista as entregas da loja — pode filtrar por status ou retornar todas
     public List<DeliveryResponse> list(UUID storeId, DeliveryStatus status) {
         List<Delivery> deliveries = status != null
                 ? deliveryRepository.findByStoreIdAndStatus(storeId, status)
@@ -61,8 +57,7 @@ public class DeliveryService {
         return deliveries.stream().map(DeliveryResponse::from).toList();
     }
 
-    // atualiza o status de uma entrega (ex: de IN_TRANSIT para DELIVERED)
-    // o findByIdAndStoreId garante que uma loja só mexe nas próprias entregas
+    // findByIdAndStoreId: uma loja não acessa entregas de outra
     public DeliveryResponse updateStatus(UUID storeId, UUID deliveryId, StatusUpdateRequest request) {
         Delivery delivery = deliveryRepository.findByIdAndStoreId(deliveryId, storeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Entrega não encontrada"));
