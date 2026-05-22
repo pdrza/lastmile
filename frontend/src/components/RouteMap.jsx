@@ -4,10 +4,10 @@ import 'leaflet/dist/leaflet.css'
 
 // cores dos marcadores por status
 const COR_STATUS = {
-  PENDING:    '#bf00ff',
-  IN_TRANSIT: '#ffaa00',
-  DELIVERED:  '#00ffaa',
-  FAILED:     '#ff006e',
+  PENDING:    '#64b5f6',
+  IN_TRANSIT: '#c89639',
+  DELIVERED:  '#1dd1a1',
+  FAILED:     '#de4f41',
 }
 
 // cria ícone circular colorido para o marcador
@@ -17,10 +17,11 @@ function criarIcone(cor, label) {
     html: `
       <div style="
         width:28px; height:28px; border-radius:50%;
-        background:${cor}22; border:2px solid ${cor};
+        background:#ffffff; border:3px solid ${cor};
         display:flex; align-items:center; justify-content:center;
-        color:${cor}; font-size:11px; font-weight:bold; font-family:monospace;
-        box-shadow:0 0 8px ${cor}88;
+        color:${cor}; font-size:11px; font-weight:800;
+        font-family:'Nunito',sans-serif;
+        box-shadow:0 2px 6px rgba(20,20,20,.25);
       ">${label}</div>
     `,
     iconSize: [28, 28],
@@ -32,11 +33,11 @@ const iconeOrigem = L.divIcon({
   className: '',
   html: `
     <div style="
-      width:32px; height:32px; border-radius:4px;
-      background:#bf00ff33; border:2px solid #bf00ff;
+      width:32px; height:32px; border-radius:10px;
+      background:#1dd1a1; border:2px solid #ffffff;
       display:flex; align-items:center; justify-content:center;
-      color:#bf00ff; font-size:14px;
-      box-shadow:0 0 12px #bf00ff88;
+      color:#ffffff; font-size:15px;
+      box-shadow:0 2px 8px rgba(20,20,20,.3);
     ">⬡</div>
   `,
   iconSize: [32, 32],
@@ -50,11 +51,11 @@ export default function RouteMap({ loja, entregas, rota }) {
     : [-25.4284, -49.2733]
 
   // pontos da polyline: origem → entregas na ordem otimizada
-  const pontosRota = rota
+  const pontosRota = rota && loja
     ? [
         [loja.latitude, loja.longitude],
         ...rota.deliveries.map(d => [d.latitude, d.longitude]),
-        [loja.latitude, loja.longitude], // volta à origem
+        [loja.latitude, loja.longitude],
       ]
     : []
 
@@ -62,11 +63,11 @@ export default function RouteMap({ loja, entregas, rota }) {
     <MapContainer
       center={centro}
       zoom={13}
-      style={{ height: '100%', width: '100%', borderRadius: '4px' }}
+      style={{ height: '100%', width: '100%' }}
     >
-      {/* mapa escuro CartoDB — compatível com a estética cyberpunk */}
+      {/* mapa claro CartoDB Voyager — combina com o tema claro */}
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://carto.com/">CARTO</a>'
       />
 
@@ -74,8 +75,8 @@ export default function RouteMap({ loja, entregas, rota }) {
       {loja?.latitude && (
         <Marker position={[loja.latitude, loja.longitude]} icon={iconeOrigem}>
           <Popup>
-            <div style={{ fontFamily: 'monospace', color: '#bf00ff', background: '#0d0010', padding: '4px' }}>
-              <strong>Ponto de partida</strong><br />
+            <div style={{ fontFamily: "'Nunito',sans-serif", color: '#141414', padding: '2px' }}>
+              <strong style={{ color: '#15b98c' }}>Ponto de partida</strong><br />
               {loja.addressText}
             </div>
           </Popup>
@@ -85,7 +86,7 @@ export default function RouteMap({ loja, entregas, rota }) {
       {/* marcadores das entregas */}
       {entregas.map((entrega) => {
         if (!entrega.latitude) return null
-        const cor = COR_STATUS[entrega.status] ?? '#e8d0ff'
+        const cor = COR_STATUS[entrega.status] ?? '#6b7280'
         const label = entrega.deliveryOrder ?? '·'
         return (
           <Marker
@@ -94,13 +95,13 @@ export default function RouteMap({ loja, entregas, rota }) {
             icon={criarIcone(cor, label)}
           >
             <Popup>
-              <div style={{ fontFamily: 'monospace', background: '#160020', color: '#e8d0ff', padding: '4px', minWidth: '140px' }}>
+              <div style={{ fontFamily: "'Nunito',sans-serif", color: '#141414', padding: '2px', minWidth: '140px' }}>
                 {entrega.deliveryOrder && (
-                  <div style={{ color: '#7a5a99', fontSize: '10px' }}>parada #{entrega.deliveryOrder}</div>
+                  <div style={{ color: '#6b7280', fontSize: '10px' }}>parada #{entrega.deliveryOrder}</div>
                 )}
-                <strong style={{ color: '#e8d0ff' }}>{entrega.customerName}</strong>
-                <div style={{ fontSize: '11px', color: '#7a5a99', marginTop: '2px' }}>{entrega.addressText}</div>
-                <div style={{ color: cor, fontSize: '11px', marginTop: '4px' }}>{entrega.status}</div>
+                <strong style={{ color: '#141414' }}>{entrega.customerName}</strong>
+                <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '2px' }}>{entrega.addressText}</div>
+                <div style={{ color: cor, fontSize: '11px', fontWeight: 700, marginTop: '4px' }}>{entrega.status}</div>
               </div>
             </Popup>
           </Marker>
@@ -111,7 +112,7 @@ export default function RouteMap({ loja, entregas, rota }) {
       {pontosRota.length > 1 && (
         <Polyline
           positions={pontosRota}
-          pathOptions={{ color: '#ff006e', weight: 2, opacity: 0.8, dashArray: '6 4' }}
+          pathOptions={{ color: '#141414', weight: 3, opacity: 0.8, dashArray: '6 4' }}
         />
       )}
     </MapContainer>

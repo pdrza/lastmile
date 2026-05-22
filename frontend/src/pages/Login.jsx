@@ -45,37 +45,37 @@ export default function Login() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4 relative z-10">
       {/* logo */}
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-mono font-bold text-neon tracking-[0.2em] glow">
-          OPTIROUTE
+        <h1 className="text-4xl font-extrabold text-text-main tracking-tight">
+          Last <span className="text-brand">Mile</span>
         </h1>
-        <p className="text-text-muted text-xs tracking-widest mt-1">
-          SISTEMA DE ROTEIRIZAÇÃO LAST-MILE
+        <p className="text-text-muted text-sm mt-1">
+          Sistema de roteirização de entregas
         </p>
       </div>
 
       {/* card do formulário */}
-      <div className="w-full max-w-sm border border-bg-border bg-bg-surface rounded p-6 space-y-4">
+      <div className="w-full max-w-sm bg-bg-surface border border-bg-border rounded-2xl shadow-soft p-6 space-y-4">
         {/* toggle login / cadastro */}
-        <div className="flex border border-bg-border rounded overflow-hidden">
+        <div className="flex bg-bg-deep border border-bg-border rounded-full p-1">
           <button
             type="button"
             onClick={() => setModo('login')}
-            className={`flex-1 py-2 text-xs font-mono tracking-wider transition-colors
+            className={`flex-1 py-2 text-sm font-bold rounded-full transition-all
               ${modo === 'login'
-                ? 'bg-neon/20 text-neon border-r border-bg-border'
-                : 'text-text-muted hover:text-text-main border-r border-bg-border'}`}
+                ? 'bg-brand text-white shadow-soft'
+                : 'text-text-muted hover:text-text-main'}`}
           >
-            ENTRAR
+            Entrar
           </button>
           <button
             type="button"
             onClick={() => setModo('cadastro')}
-            className={`flex-1 py-2 text-xs font-mono tracking-wider transition-colors
+            className={`flex-1 py-2 text-sm font-bold rounded-full transition-all
               ${modo === 'cadastro'
-                ? 'bg-neon/20 text-neon'
+                ? 'bg-brand text-white shadow-soft'
                 : 'text-text-muted hover:text-text-main'}`}
           >
-            CADASTRAR
+            Cadastrar
           </button>
         </div>
 
@@ -90,7 +90,7 @@ export default function Login() {
           )}
 
           {erro && (
-            <p className="text-magenta text-xs border border-magenta/30 bg-magenta/10 rounded px-3 py-2">
+            <p className="text-danger text-sm border border-danger/30 bg-danger/10 rounded-lg px-3 py-2">
               {erro}
             </p>
           )}
@@ -98,23 +98,23 @@ export default function Login() {
           <button
             type="submit"
             disabled={carregando}
-            className="w-full py-2.5 bg-neon/20 border border-neon text-neon text-sm font-mono
-                       rounded hover:bg-neon/30 glow transition-all
-                       disabled:opacity-50 disabled:cursor-not-allowed tracking-widest"
+            className="w-full py-2.5 bg-brand text-white text-sm font-bold
+                       rounded-full shadow-soft hover:bg-brand-dark hover:shadow-soft-lg
+                       transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {carregando
               ? '...'
-              : modo === 'login' ? 'ACESSAR SISTEMA' : 'CRIAR CONTA'}
+              : modo === 'login' ? 'Acessar sistema' : 'Criar conta'}
           </button>
         </form>
       </div>
 
       {/* decoração de grade na base */}
-      <div className="mt-8 flex gap-1 opacity-30">
+      <div className="mt-8 flex gap-1 opacity-40">
         {Array.from({ length: 12 }).map((_, i) => (
           <div
             key={i}
-            className="w-1 bg-neon rounded-full"
+            className="w-1 bg-brand rounded-full"
             style={{ height: `${8 + (i % 4) * 6}px` }}
           />
         ))}
@@ -126,16 +126,16 @@ export default function Login() {
 function Campo({ label, type = 'text', value, onChange, placeholder }) {
   return (
     <div>
-      <label className="text-text-muted text-xs block mb-1">{label}</label>
+      <label className="text-text-muted text-xs font-bold block mb-1">{label}</label>
       <input
         type={type}
         value={value}
         onChange={onChange}
         required
         placeholder={placeholder}
-        className="w-full bg-bg-deep border border-bg-border rounded px-3 py-2 text-text-main text-sm
-                   font-mono placeholder:text-text-muted/50
-                   focus:outline-none focus:border-neon transition-colors"
+        className="w-full bg-bg-deep border border-bg-border rounded-lg px-3 py-2 text-text-main text-sm
+                   placeholder:text-text-muted/60
+                   focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
       />
     </div>
   )

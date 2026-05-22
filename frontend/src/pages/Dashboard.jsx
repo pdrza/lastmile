@@ -7,6 +7,14 @@ import RouteMap from '../components/RouteMap'
 
 const FILTROS = ['TODOS', 'PENDING', 'IN_TRANSIT', 'DELIVERED', 'FAILED']
 
+const ROTULO_FILTRO = {
+  TODOS:      'Todos',
+  PENDING:    'Pendente',
+  IN_TRANSIT: 'Em rota',
+  DELIVERED:  'Entregue',
+  FAILED:     'Falha',
+}
+
 export default function Dashboard() {
   const navegar = useNavigate()
   const [entregas, setEntregas] = useState([])
@@ -20,7 +28,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     carregarEntregas()
+    carregarLoja()
   }, [])
+
+  async function carregarLoja() {
+    try {
+      const { data } = await api.get('/api/stores/me')
+      setLoja(data)
+    } catch {
+      // fallback: mapa centraliza em Curitiba
+    }
+  }
 
   async function carregarEntregas() {
     try {
@@ -72,27 +90,27 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen flex flex-col relative z-10">
       {/* header */}
-      <header className="border-b border-bg-border bg-bg-surface px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-neon font-mono font-bold tracking-widest text-lg glow">
-            OPTIROUTE
+      <header className="bg-bg-surface border-b border-bg-border shadow-soft px-5 py-3 flex items-center justify-between">
+        <div className="flex items-baseline gap-3">
+          <h1 className="text-text-main font-extrabold text-xl tracking-tight">
+            Last <span className="text-brand">Mile</span>
           </h1>
-          <span className="text-text-muted text-xs">/ dashboard</span>
+          <span className="text-text-muted text-sm">/ dashboard</span>
         </div>
         <button
           onClick={sair}
-          className="text-text-muted text-xs font-mono hover:text-magenta transition-colors"
+          className="text-text-muted text-sm font-bold hover:text-danger transition-colors"
         >
-          SAIR
+          Sair
         </button>
       </header>
 
       {/* toast de mensagem */}
       {mensagem && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded border text-sm font-mono
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-soft-lg border text-sm font-bold
           ${mensagem.tipo === 'ok'
-            ? 'bg-success/10 border-success text-success'
-            : 'bg-magenta/10 border-magenta text-magenta'}`}>
+            ? 'bg-brand-soft border-brand text-brand-dark'
+            : 'bg-danger/10 border-danger text-danger'}`}>
           {mensagem.texto}
         </div>
       )}
@@ -107,19 +125,19 @@ export default function Dashboard() {
           <div className="p-3 border-b border-bg-border space-y-2">
             <button
               onClick={() => setMostrarFormulario(v => !v)}
-              className="w-full py-2 border border-neon text-neon text-xs font-mono rounded
-                         hover:bg-neon/20 glow transition-all tracking-wider"
+              className="w-full py-2 border border-brand text-brand text-sm font-bold rounded-full
+                         hover:bg-brand-soft transition-all"
             >
-              + NOVA ENTREGA
+              + Nova entrega
             </button>
             <button
               onClick={otimizarRota}
               disabled={!temPendentes || otimizando}
-              className="w-full py-2 border border-magenta text-magenta text-xs font-mono rounded
-                         hover:bg-magenta/20 glow-magenta transition-all tracking-wider
-                         disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-full py-2 bg-brand text-white text-sm font-bold rounded-full
+                         shadow-soft hover:bg-brand-dark hover:shadow-soft-lg transition-all
+                         disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              {otimizando ? 'OTIMIZANDO...' : '⚡ OTIMIZAR ROTA'}
+              {otimizando ? 'Otimizando...' : '⚡ Otimizar rota'}
             </button>
           </div>
 
@@ -135,17 +153,17 @@ export default function Dashboard() {
 
           {/* filtros de status */}
           <div className="p-3 border-b border-bg-border">
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {FILTROS.map(f => (
                 <button
                   key={f}
                   onClick={() => setFiltro(f)}
-                  className={`px-2 py-0.5 text-xs font-mono rounded border transition-colors
+                  className={`px-3 py-1 text-xs font-bold rounded-full border transition-all
                     ${filtro === f
-                      ? 'border-neon text-neon bg-neon/10'
-                      : 'border-bg-border text-text-muted hover:border-text-muted'}`}
+                      ? 'border-brand text-white bg-brand'
+                      : 'border-bg-border text-text-muted bg-bg-deep hover:border-brand hover:text-brand'}`}
                 >
-                  {f === 'TODOS' ? 'TODOS' : f.replace('_', ' ')}
+                  {ROTULO_FILTRO[f] ?? f}
                 </button>
               ))}
             </div>
@@ -154,7 +172,7 @@ export default function Dashboard() {
           {/* lista de entregas */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {entregasFiltradas.length === 0 ? (
-              <p className="text-text-muted text-xs text-center py-8">
+              <p className="text-text-muted text-sm text-center py-8">
                 Nenhuma entrega encontrada.
               </p>
             ) : (
@@ -173,9 +191,9 @@ export default function Dashboard() {
 
           {/* contador */}
           <div className="p-3 border-t border-bg-border">
-            <p className="text-text-muted text-xs font-mono">
+            <p className="text-text-muted text-xs">
               {entregasFiltradas.length} entrega(s)
-              {filtro !== 'TODOS' && ` com status ${filtro.replace('_', ' ')}`}
+              {filtro !== 'TODOS' && ` com status ${ROTULO_FILTRO[filtro]?.toLowerCase()}`}
             </p>
           </div>
         </div>
@@ -184,24 +202,24 @@ export default function Dashboard() {
         <div className="flex-1 flex flex-col">
           {/* info da rota (quando existir) */}
           {rotaAtual && (
-            <div className="p-3 border-b border-bg-border bg-bg-surface flex items-center gap-6">
+            <div className="p-4 border-b border-bg-border bg-bg-surface shadow-soft flex items-center gap-8">
               <div>
-                <span className="text-text-muted text-xs">TEMPO ESTIMADO</span>
-                <p className="text-neon font-mono font-bold">
+                <span className="text-text-muted text-xs font-bold uppercase tracking-wide">Tempo estimado</span>
+                <p className="text-text-main font-mono font-bold text-lg">
                   {Math.round(rotaAtual.totalTimeSeconds / 60)} min
                 </p>
               </div>
               {rotaAtual.totalDistanceMeters > 0 && (
                 <div>
-                  <span className="text-text-muted text-xs">DISTÂNCIA</span>
-                  <p className="text-neon font-mono font-bold">
+                  <span className="text-text-muted text-xs font-bold uppercase tracking-wide">Distância</span>
+                  <p className="text-text-main font-mono font-bold text-lg">
                     {(rotaAtual.totalDistanceMeters / 1000).toFixed(1)} km
                   </p>
                 </div>
               )}
               <div className="ml-auto">
-                <span className="text-text-muted text-xs">PARADAS</span>
-                <p className="text-neon font-mono font-bold">
+                <span className="text-text-muted text-xs font-bold uppercase tracking-wide">Paradas</span>
+                <p className="text-brand font-mono font-bold text-lg">
                   {rotaAtual.deliveries.length}
                 </p>
               </div>
