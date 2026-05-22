@@ -31,11 +31,44 @@ app:
     secret: ${JWT_SECRET:insecure-dev-secret-replace-in-production-with-256-bit-key}
     expiration-hours: 24
 
+  cors:
+    # false: frontend na mesma origem (pacote Docker) ou via proxy do Vite em dev.
+    # true: necessário só se o frontend rodar em outra origem sem proxy.
+    enabled: ${CORS_ENABLED:false}
+    allowed-origin: ${CORS_ALLOWED_ORIGIN:http://localhost:5173}
+
   geocoding:
     api-key: ${ORS_API_KEY:}
     base-url: https://api.openrouteservice.org
+
+# Actuator: expõe apenas /actuator/health (usado como healthcheck do container)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 logging:
   level:
     com.lastmile.optiroute: DEBUG
     org.springframework.security: INFO
+
+---
+# Perfil "docker": ativado no pacote do lojista (SPRING_PROFILES_ACTIVE=docker).
+# O segredo JWT passa a ser OBRIGATÓRIO — sem a variável de ambiente JWT_SECRET
+# a aplicação falha ao iniciar, em vez de cair num segredo fraco de desenvolvimento.
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+
+logging:
+  level:
+    com.lastmile.optiroute: INFO

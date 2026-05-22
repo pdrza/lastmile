@@ -36,7 +36,12 @@ public class AuthService {
             throw new IllegalArgumentException("Email já cadastrado: " + request.email());
         }
 
-        double[] coords = geocodingCacheService.getCoordinates(request.address());
+        double[] coords;
+        try {
+            coords = geocodingCacheService.getCoordinates(request.address());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Não foi possível geocodificar o endereço: " + request.address());
+        }
 
         Store store = Store.builder()
                 .name(request.name())

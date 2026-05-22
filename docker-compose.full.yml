@@ -1,0 +1,85 @@
+# ============================================================
+# Pacote completo do Last Mile: aplicação + banco + cache.
+# Sobe tudo em um comando:
+#   docker compose -f docker-compose.full.yml up -d --build
+# (ou simplesmente use o instalar.bat)
+#
+# As variáveis ${...} são lidas do arquivo .env (mesmo diretório).
+# ============================================================
+
+# nome de projeto próprio: isola volumes/rede do docker-compose.yml de dev
+name: lastmile-app
+
+services:
+
+  # Banco de dados PostgreSQL com extensão geoespacial PostGIS
+  postgres:
+    image: postgis/postgis:15-3.3
+    container_name: optiroute-db
+    environment:
+      POSTGRES_DB: optiroute
+      POSTGRES_USER: optiroute
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    # bind em 127.0.0.1: o banco fica acessível só na própria máquina
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U optiroute -d optiroute"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Cache em memória Redis
+  redis:
+    image: redis:7-alpine
+    container_name: optiroute-cache
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Aplicação: API Spring Boot + frontend React (mesma origem)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: optiroute-app
+    # só sobe depois que banco e cache estiverem prontos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_URL: jdbc:postgresql://postgres:5432/optiroute
+      DB_USERNAME: optiroute
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      ORS_API_KEY: ${ORS_API_KEY}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      # tempo de folga para JVM iniciar e o Flyway aplicar as migrations
+      start_period: 45s
+    restart: unless-stopped
+
+# volumes nomeados: os dados sobrevivem a parar/iniciar e reinício da máquina
+volumes:
+  postgres_data:
+  redis_data:

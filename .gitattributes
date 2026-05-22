@@ -1,0 +1,3 @@
+# normaliza line endings para LF no repositório (padrão Unix/GitHub)
+* text=auto eol=lf
+*.bat text eol=crlf

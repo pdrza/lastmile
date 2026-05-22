@@ -47,6 +47,9 @@ frontend/*.local
 *.env.development
 *.env.production
 
+# exceção: o template SEM segredos pode (e deve) ir para o repositório
+!.env.example
+
 # =============================================================
 # IDEs e EDITORES
 # =============================================================
@@ -86,6 +89,14 @@ $RECYCLE.BIN/
 # variáveis de ambiente do compose (se existir)
 docker-compose.override.yml
 .docker/
+
+# =============================================================
+# DOCUMENTAÇÃO INTERNA — não sobe para o repositório
+# =============================================================
+
+ESPECIFICACAO_PROJETO.md
+GUIA_DO_CODIGO.md
+status_projeto.md
 
 # =============================================================
 # CLAUDE CODE — dados de sessão e memória da ferramenta

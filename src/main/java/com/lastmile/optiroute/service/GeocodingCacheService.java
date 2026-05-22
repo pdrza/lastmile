@@ -27,8 +27,12 @@ public class GeocodingCacheService {
         String cached = redis.opsForValue().get(key);
 
         if (cached != null) {
-            String[] parts = cached.split(",");
-            return new double[]{Double.parseDouble(parts[0]), Double.parseDouble(parts[1])};
+            try {
+                String[] parts = cached.split(",");
+                return new double[]{Double.parseDouble(parts[0]), Double.parseDouble(parts[1])};
+            } catch (Exception e) {
+                redis.delete(key);
+            }
         }
 
         double[] coords = geocodingClient.geocode(address);

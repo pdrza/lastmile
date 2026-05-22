@@ -85,7 +85,7 @@ O sistema suporta múltiplas lojas (multitenancy): cada loja enxerga apenas suas
 - Java 21
 - Maven 3.9+
 - Docker Desktop
-- Node.js 18+
+- Node.js 20+
 - Chave gratuita da [OpenRouteService API](https://openrouteservice.org/)
 
 ---
@@ -115,17 +115,52 @@ npm install
 npm run dev
 ```
 
+O frontend usa um *proxy* do Vite: as chamadas `/api` são encaminhadas para o
+backend em `localhost:8080`, então não é preciso configurar CORS em dev.
+
+---
+
+## Instalação como pacote (Docker)
+
+Para rodar o sistema completo — API + frontend + banco + cache — em uma única
+máquina (ex.: um teste com um pequeno comércio), sem instalar Java, Node ou
+PostgreSQL separadamente.
+
+**Pré-requisito:** apenas o [Docker Desktop](https://www.docker.com/products/docker-desktop).
+
+```powershell
+# 1. Copie .env.example para .env e preencha ORS_API_KEY
+#    (DB_PASSWORD e JWT_SECRET podem ser quaisquer valores fortes)
+
+# 2. Suba tudo com um comando:
+docker compose -f docker-compose.full.yml up -d --build
+```
+
+Acesse **http://localhost:8080** — o Spring Boot serve o frontend React e a API
+na mesma origem.
+
+Para usuários não técnicos há scripts de duplo clique: **`instalar.bat`**,
+**`parar.bat`** e **`desinstalar.bat`**. O passo a passo completo está em
+[`MANUAL_DO_LOJISTA.md`](MANUAL_DO_LOJISTA.md).
+
+Diferenças no pacote (perfil `docker`): `JWT_SECRET` é obrigatório (sem fallback
+inseguro) e o endpoint auxiliar `DELETE /api/test/reset` fica desativado.
+
 ---
 
 ## Endpoints
 
-A API expõe três grupos de recursos:
+A API expõe quatro grupos de recursos:
 
 - **Autenticação** — cadastro e login de lojas
+- **Loja** — dados da loja autenticada *(requer token)*
 - **Entregas** — CRUD de entregas com atualização de status *(requer token)*
 - **Rotas** — otimização e consulta de rotas calculadas *(requer token)*
 
 Todas as rotas protegidas exigem `Authorization: Bearer <token>` no header.
+
+A documentação interativa (Swagger UI) fica em **`/swagger-ui/index.html`** — lista
+todos os endpoints e permite testá-los direto pelo navegador.
 
 ---
 

@@ -1,0 +1,32 @@
+# Arquivos que NÃO entram no contexto de build do Docker.
+# Mantém o build rápido e a imagem limpa.
+
+# build do backend
+target/
+
+# dependências e build do frontend (regenerados dentro da imagem)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# controle de versão e configs de IDE
+.git/
+.gitignore
+.gitattributes
+.idea/
+.vscode/
+
+# dados de sessão da ferramenta
+.claude/
+
+# segredos e logs
+.env
+.env.*
+*.log
+logs/
+
+# documentação (não é necessária dentro da imagem)
+*.md
+
+# scripts e arquivos de empacotamento
+*.bat
